@@ -77,3 +77,14 @@ export default {
   }
 }
 </script>
+
+
+<style lang="scss" scoped>
+.navbar-collapse {
+  justify-content: end;
+  margin-right: 2em;
+  .text-white {
+    margin-right: 1em;
+  }
+}
+</style>
