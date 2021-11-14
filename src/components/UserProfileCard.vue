@@ -14,7 +14,11 @@
              <li><strong>{{profile.followings.length}}</strong> followings(追蹤中)</li>
              <li><strong>{{profile.followers.length}}</strong> followers(追蹤者)</li>
            </ul>
-           <button v-if="isCurrentUser" class="btn btn-primary">Edit</button>
+           <router-link 
+             v-if="isCurrentUser" 
+             :to="{name: 'user-edit', params: {id: profile.id}}" 
+             class="btn btn-primary">Edit
+            </router-link>
          </div>
        </div>
      </div>
