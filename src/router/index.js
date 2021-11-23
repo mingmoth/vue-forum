@@ -12,7 +12,7 @@ export default new VueRouter({
     {
       path: '/',
       name: 'root',
-      redirect: '/restaurants'
+      redirect: '/signin'
     },
     {
       path: '/signin',
