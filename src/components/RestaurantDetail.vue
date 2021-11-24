@@ -1,9 +1,9 @@
 <template>
   <div class="row">
     <div class="col-md-12 mb-3">
-      <h1>Judy Runte</h1>
-      <p class="badge badge-secondary mt-1 mb-3">
-        {{restaurant.name}}
+      <h1>{{restaurant.name}}</h1>
+      <p class="badge bg-secondary mt-1 mb-3">
+        {{restaurant.categoryName}}
       </p>
     </div>
     <div class="col-lg-4">
@@ -84,6 +84,15 @@ export default {
   data() {
     return {
       restaurant: this.initialRestaurant
+    }
+  },
+  watch: {
+    initialRestaurant(newValue) {
+      this.restaurant = {
+        ...this.restaurant,
+        ...newValue
+      }
+
     }
   },
   methods: {

@@ -61,6 +61,15 @@ export default {
       currentUser: dummyUser.currentUser
     }
   },
+  watch: {
+    restaurantComments(newValue) {
+      this.restaurant = {
+        ...this.restaurant,
+        ...newValue
+      }
+
+    }
+  },
   methods: {
     deleteComment(commentId) {
       this.$emit('delete-comment', commentId)
