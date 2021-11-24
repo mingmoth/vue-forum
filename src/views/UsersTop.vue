@@ -1,21 +1,17 @@
 <template>
   <div class="container py-5">
     <NavTabs />
-    <h1 class="mt-5">
-      美食達人
-    </h1>
-    <hr>
+    <h1 class="mt-5">美食達人</h1>
+    <hr />
     <div class="row text-center">
       <div class="col-3" v-for="user in users" :key="user.id">
         <a href="#">
-          <img
-            :src="user.image"
-            width="140px"
-            height="140px"
-          >
+          <img :src="user.image" width="140px" height="140px" />
         </a>
-        <h2 class="mt-3">{{user.name}}</h2>
-        <span class="badge bg-secondary">追蹤人數：{{user.FollowerCount}}</span>
+        <h2 class="mt-3">{{ user.name }}</h2>
+        <span class="badge bg-secondary"
+          >追蹤人數：{{ user.FollowerCount }}</span
+        >
         <p class="mt-3">
           <button
             v-if="user.isFollowed"
@@ -40,96 +36,89 @@
 </template>
 
 <script>
-import NavTabs from '../components/NavTabs.vue'
-
-const dummyUser = {
-    "users": [
-        {
-            "id": 1,
-            "name": "root",
-            "email": "root@example.com",
-            "password": "$2a$10$AvHu1laIippZL3G.UJ08jOEMQZw/bRyFBonVfNCqABVvcO5ZHOqzS",
-            "isAdmin": true,
-            "image": null,
-            "createdAt": "2021-10-10T07:19:42.000Z",
-            "updatedAt": "2021-10-10T07:19:42.000Z",
-            "Followers": [],
-            "FollowerCount": 0,
-            "isFollowed": false
-        },
-        {
-            "id": 2,
-            "name": "user1",
-            "email": "user1@example.com",
-            "password": "$2a$10$gNbxX.GggESFVSk7iooboOzCDVIcHBoKF0fwbZaM0Ai7BhbtbNn8y",
-            "isAdmin": false,
-            "image": null,
-            "createdAt": "2021-10-10T07:19:42.000Z",
-            "updatedAt": "2021-10-10T07:19:42.000Z",
-            "Followers": [],
-            "FollowerCount": 0,
-            "isFollowed": false
-        },
-        {
-            "id": 3,
-            "name": "user2",
-            "email": "user2@example.com",
-            "password": "$2a$10$8BEcpQVgpsmUeysWWIYKTOzCA9lW.yrqBNSC7NBq/9g.kYcu.K2a2",
-            "isAdmin": false,
-            "image": null,
-            "createdAt": "2021-10-10T07:19:42.000Z",
-            "updatedAt": "2021-10-10T07:19:42.000Z",
-            "Followers": [],
-            "FollowerCount": 0,
-            "isFollowed": false
-        }
-    ]
-}
+import NavTabs from "../components/NavTabs.vue";
+import usersAPI from "../apis/users";
+import { Toast } from "../utils/helpers";
 
 export default {
-  name: 'UsersTop',
+  name: "UsersTop",
   components: {
     NavTabs,
   },
   data() {
     return {
-      users: []
-    }
+      users: [],
+    };
   },
   created() {
-    this.fetchUser()
+    this.fetchUser();
   },
   methods: {
-    fetchUser() {
-      this.users = dummyUser.users
-    },
-    addFollowed(userId) {
-      this.users = this.users.map((user) => {
-        if(user.id === userId) {
-          return {
-            ...user,
-            isFollowed: true,
-            FollowerCount: user.FollowerCount + 1
-          }
-        } else {
-          return user
+    async fetchUser() {
+      try {
+        const response = await usersAPI.getTopUsers();
+        if (response.statusText !== "OK") {
+          throw new Error();
         }
-      })
+        this.users = response.data.users;
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法取得美食達人，請稍後再試",
+        });
+        console.log(error);
+      }
     },
-    deleteFollowed(userId) {
-      this.users = this.users.map((user) => {
-        if(user.id !== userId) {
-          return user
-        } else {
-          return {
-            ...user,
-            isFollowed: false,
-            FollowerCount: user.FollowerCount - 1
-          }
-
+    async addFollowed(userId) {
+      try {
+        const { data } = await usersAPI.addFollowing({ userId });
+        if (data.status !== "success") {
+          throw new Error(data.message);
         }
-      })
+        this.users = this.users.map((user) => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              isFollowed: true,
+              FollowerCount: user.FollowerCount + 1,
+            };
+          } else {
+            return user;
+          }
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法加入追蹤，請稍後再試",
+        });
+        console.log(error);
+      }
     },
-  }
-}
+    async deleteFollowed(userId) {
+      try {
+        const { data } = await usersAPI.deleteFollowing({ userId });
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+        this.users = this.users.map((user) => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              isFollowed: false,
+              FollowerCount: user.FollowerCount - 1,
+            };
+          } else {
+            return user;
+          }
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法加入追蹤，請稍後再試",
+        });
+        console.log(error);
+      }
+    },
+  },
+};
 </script>
