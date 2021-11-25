@@ -25,16 +25,7 @@ import CreateComment from "../components/CreateComment.vue";
 import restaurantsAPI from "../apis/restaurants";
 import { Toast } from "../utils/helpers";
 
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: "管理者",
-    email: "root@example.com",
-    image: "https://i.pravatar.cc/300",
-    isAdmin: true,
-  },
-  isAuthenticated: true,
-};
+import { mapState } from "vuex";
 
 export default {
   name: "Restaurant",
@@ -58,17 +49,24 @@ export default {
         isLiked: false,
       },
       restaurantComments: [],
-      currentUser: dummyUser.currentUser,
     };
   },
   created() {
     const { id: restaurantId } = this.$route.params;
-    this.fethRestaurant({restaurantId});
+    this.fethRestaurant({ restaurantId });
+  },
+  beforeRouteUpdate(to, from, next) {
+    const { id: restaurantId } = to.params;
+    this.fethRestaurant({ restaurantId });
+    next();
+  },
+  computed: {
+    ...mapState(["currentUser"]),
   },
   methods: {
-    async fethRestaurant({restaurantId}) {
+    async fethRestaurant({ restaurantId }) {
       try {
-        const response = await restaurantsAPI.getRestaurant({restaurantId});
+        const response = await restaurantsAPI.getRestaurant({ restaurantId });
         console.log(response);
         const { isFavorited, isLiked } = response.data;
         const {
@@ -111,15 +109,15 @@ export default {
     createComment(payload) {
       const { commentId, restaurantId, comment } = payload;
       this.restaurantComments.push({
-        id: commentId,
-        RestaurantId: restaurantId,
-        text: comment,
-        createdAt: new Date(),
-        User: {
-          id: this.currentUser.id,
-          name: this.currentUser.name,
-        },
-      });
+          id: commentId,
+          RestaurantId: restaurantId,
+          text: comment,
+          createdAt: new Date(),
+          User: {
+            id: this.currentUser.id,
+            name: this.currentUser.name,
+          },
+        });
     },
   },
 };

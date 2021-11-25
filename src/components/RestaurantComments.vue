@@ -10,6 +10,7 @@
           type="button"
           class="btn btn-danger float-right"
           v-if="currentUser.isAdmin"
+          :disabled="isProcessing"
           @click.prevent.stop="deleteComment(comment.id)"
         >
           Delete
@@ -19,9 +20,9 @@
             {{comment.User ? comment.User.name : '匿名留言'}}
           </a>
         </h3>
-        <p>{{comment.description}}}</p>
+        <p>{{comment.text}}</p>
         <footer class="blockquote-footer">
-          {{comment.createdAt | fromNow}}
+          {{comment.updatedAt | fromNow}}
         </footer>
       </blockquote>
       <hr>
@@ -32,17 +33,10 @@
 
 
 <script>
+import commentsAPI from '../apis/comments'
 import {fromNowFilter} from '../utils/mixins'
-const dummyUser = {
-  currentUser: {
-    id: 1,
-    name: '管理者',
-    email: 'root@example.com',
-    image: 'https://i.pravatar.cc/300',
-    isAdmin: true
-  },
-  isAuthenticated: true
-}
+import { Toast } from '../utils/helpers'
+import { mapState } from 'vuex'
 
 // import moment from 'moment'
 export default {
@@ -54,12 +48,15 @@ export default {
     restaurantComments: {
       type: Array,
       required: true
-    }
+    },
   },
   data() {
     return {
-      currentUser: dummyUser.currentUser
+      isProcessing: false,
     }
+  },
+  computed: {
+    ...mapState(["currentUser"])
   },
   watch: {
     restaurantComments(newValue) {
@@ -71,8 +68,28 @@ export default {
     }
   },
   methods: {
-    deleteComment(commentId) {
-      this.$emit('delete-comment', commentId)
+    async deleteComment(commentId) {
+      try {
+        this.isProcessing = true
+        const { data } = await commentsAPI.delete({commentId})
+        if(data.status !== 'success') {
+          throw new Error(data.message)
+        }
+        this.$emit('delete-comment', commentId)
+        Toast.fire({
+          icon: "success",
+          title: `已成功刪除評論`,
+        });
+        this.isProcessing = false
+      } catch (error) {
+        Toast.fire({
+          icon: 'error',
+          title: `無法刪除評論--${error.message}`
+        })
+        this.isProcessing = false
+        console.log(error)
+      }
+      // 
     }
   }
 }
