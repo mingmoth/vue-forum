@@ -6,15 +6,17 @@
         v-for="follower in followers"
         :key="follower.id"
         :to="{name: 'user', params: {id: follower.id}}">
-        <img :src="follower.image" alt="follower" width="60" height="60" class="m-1">
+        <img :src="follower.image | emptyImage" alt="follower" width="60" height="60" class="m-1">
       </router-link>
     </div>
   </div>
 </template>
 
 <script>
+import { emptyImageFilter } from '../utils/mixins'
 export default {
   name: 'UserFollowerCard',
+  mixins: [emptyImageFilter],
   props: {
     followers: {
       type: Array,
