@@ -19,12 +19,18 @@
           <td>{{ user.email }}</td>
           <td v-if="user.isAdmin">admin</td>
           <td v-else>user</td>
-          <td v-if="user.id === currentUser.id" >
-            
+          <td v-if="user.id === currentUser.id"></td>
+          <td v-else-if="user.isAdmin" @click="toggleUserRole({userId: user.id, isAdmin: user.isAdmin})">
+            <button type="button" class="btn btn-link">set as user</button>
           </td>
-          <td v-else-if="user.isAdmin" @click="toggleUserRole(user.id)"><button type="button" class="btn btn-link">set as user</button></td>
           <td v-else>
-            <button type="button" class="btn btn-link" @click="toggleUserRole(user.id)">set as admin</button>
+            <button
+              type="button"
+              class="btn btn-link"
+              @click="toggleUserRole({userId: user.id, isAdmin: user.isAdmin})"
+            >
+              set as admin
+            </button>
           </td>
         </tr>
       </tbody>
@@ -35,50 +41,9 @@
 <script>
 import AdminNav from "../components/AdminNav.vue";
 
-const dummyData = {
-  users: [
-    {
-      id: 1,
-      name: "root",
-      email: "root@example.com",
-      password: "$2a$10$jlhmTFkoFv7JWa3tCFxQF.QR68dI2xnBV9xTWpQChXKR4H96/Kl5W",
-      isAdmin: true,
-      image: null,
-      createdAt: "2021-11-23T07:25:28.000Z",
-      updatedAt: "2021-11-23T07:25:28.000Z",
-    },
-    {
-      id: 2,
-      name: "user1",
-      email: "user1@example.com",
-      password: "$2a$10$xSAOmUrVGjFXNuA6pENgM.ldkJ/Nu4uf6PSXAYAfPxNnbGocDZ4rO",
-      isAdmin: false,
-      image: null,
-      createdAt: "2021-11-23T07:25:29.000Z",
-      updatedAt: "2021-11-23T07:25:29.000Z",
-    },
-    {
-      id: 3,
-      name: "user2",
-      email: "user2@example.com",
-      password: "$2a$10$E4cdOtef4QKN1tKbEe1MwOVlMOxe/.Fbc2HNqgjJMVdkL8oBYF6le",
-      isAdmin: false,
-      image: null,
-      createdAt: "2021-11-23T07:25:29.000Z",
-      updatedAt: "2021-11-23T07:25:29.000Z",
-    },
-  ],
-  currentUser: {
-    id: 1,
-    name: "root",
-    email: "root@example.com",
-    password: "$2a$10$jlhmTFkoFv7JWa3tCFxQF.QR68dI2xnBV9xTWpQChXKR4H96/Kl5W",
-    isAdmin: true,
-    image: null,
-    createdAt: "2021-11-23T07:25:28.000Z",
-    updatedAt: "2021-11-23T07:25:28.000Z",
-  },
-};
+import { mapState } from "vuex";
+import adminAPI from "../apis/admin";
+import { Toast } from "../utils/helpers";
 
 export default {
   name: "AdminUsers",
@@ -87,28 +52,60 @@ export default {
   },
   data() {
     return {
-      users: {},
-      currentUser: {}
+      users: [],
     };
+  },
+  computed: {
+    ...mapState(["currentUser"]),
   },
   created() {
     this.fetchUser();
   },
   methods: {
-    fetchUser() {
-      this.users = dummyData.users;
-      this.currentUser = dummyData.currentUser
+    async fetchUser() {
+      try {
+        const response = await adminAPI.users.get();
+        if (response.statusText !== "OK") {
+          throw new Error();
+        }
+        this.users = response.data.users;
+        console.log(response);
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法存取使用者資訊，請稍後再試",
+        });
+        console.log(error);
+      }
     },
-    toggleUserRole(userId) {
-      this.users = this.users.map((user) => {
-        if(user.id === userId) {
-          return {
-            ...user,
-            isAdmin: !user.isAdmin
+    async toggleUserRole({userId, isAdmin}) {
+      try {
+        const { data } = await adminAPI.users.update({
+          userId,
+          isAdmin: (!isAdmin).toString(),
+        });
+        console.log(userId);
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+        this.users = this.users.map((user) => {
+          if (user.id === userId) {
+            return {
+              ...user,
+              isAdmin: !isAdmin,
+            };
+          } else {
+            return user;
           }
-        } else { return user}
-      })
-    }
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: `無法切換使用者權限--${error.message}`,
+        });
+        console.log(error.message);
+      }
+    },
   },
 };
 </script>
