@@ -4,14 +4,14 @@
     <div class="card-body">
       <div v-for="comment in comments" :key="comment.id">
         <h4>
-          <a href="#">
-            {{comment.Restaurant.name}}
-          </a>
+          <router-link :to="{name: 'restaurant', params: {id: comment.RestaurantId}}">
+            {{comment.Restaurant? comment.Restaurant.name : '匿名餐廳'}}
+          </router-link>
         </h4>
         <p>{{comment.text}}</p>by
-        <a href="#">
+        <router-link :to="{name:'user', params: {id: comment.UserId}}">
           {{comment.User.name}}
-        </a>
+        </router-link>
         {{comment.createdAt | fromNow}}
         <hr>
       </div>
