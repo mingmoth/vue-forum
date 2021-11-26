@@ -82,6 +82,7 @@ export default {
         if (response.statusText !== "OK") {
           throw new Error();
         }
+        console.log(response)
         const {
           id,
           name,
@@ -106,7 +107,6 @@ export default {
           followers: Followers ? Followers : [],
           followings: Followings ? Followings : [],
         };
-        console.log(response.data);
       } catch (error) {
         Toast.fire({
           icon: "error",

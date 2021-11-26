@@ -1,6 +1,6 @@
 <template>
   <div class="container py-5">
-    <form @submit="handleSubmit">
+    <form @submit.prevent.stop="handleSubmit">
       <div class="form-group">
         <label for="name">Name</label>
         <input
@@ -11,17 +11,18 @@
           placeholder="Enter Name"
           v-model="user.name"
           required
-        >
+        />
       </div>
 
       <div class="form-group">
         <label for="image">Image</label>
         <img
           v-if="user.image"
-          :src="user.image"
+          :src="user.image | emptyImage"
           class="d-block img-thumbnail mb-3"
           width="200"
-          height="200">
+          height="200"
+        />
         <input
           id="image"
           type="file"
@@ -29,20 +30,13 @@
           accept="image/*"
           class="form-control-file"
           @change="handleFileChange"
-        >
+        />
       </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary"
-      >
+      <button type="submit" class="btn btn-primary" :disabled="isProcessing">
         Submit
       </button>
-      <button
-        type="button"
-        class="btn btn-secondary"
-        @click="$router.back()"
-      >
+      <button type="button" class="btn btn-secondary" @click="$router.back()">
         Back
       </button>
     </form>
@@ -50,59 +44,101 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+import { emptyImageFilter } from "../utils/mixins";
 
-const dummyData = {
-  'profile': {
-    'id': 1,
-    'name': 'root',
-    'email': 'root@example.com',
-    'password': '$2a$10$OJ3jR93XlEMrQtYMWOIQh.EINWgaRFTXkd0Xi5OC/Vz4maztUXEPe',
-    'isAdmin': true,
-    'image': 'https://i.imgur.com/58ImzMM.png',
-    'createdAt': '2019-07-30T16:24:54.983Z',
-    'updatedAt': '2019-08-01T10:33:51.095Z',
-  }
-  
-}
-
+import usersAPI from "../apis/users";
+import { Toast } from "../utils/helpers";
 export default {
-  name: 'UserEdit',
+  name: "UserEdit",
+  mixins: [emptyImageFilter],
   data() {
     return {
       user: {
         id: 0,
-        name: '',
-        email: '',
-        image: '',
-      }
-    }
+        name: "",
+        email: "",
+        image: "",
+      },
+      isProcessing: false,
+    };
+  },
+  computed: {
+    ...mapState(["currentUser"]),
   },
   created() {
-    const {id} = this.$route.params
-    this.fetchUser(id)
+    if (this.currentUser.id === -1) return;
+    const { id } = this.$route.params;
+    this.setUser(id);
+  },
+  beforeRouteUpdate(to, from, next) {
+    if (this.currentUser.id === -1) return;
+    const { id } = to.params;
+    this.setUser(id);
+    next();
+  },
+  watch: {
+    currentUser(user) {
+      if (user.id === -1) return;
+      const { id } = this.$route.params;
+      this.setUser(id);
+    },
   },
   methods: {
-    fetchUser() {
-      const {id, name, email, image} = dummyData.profile
-      this.user = {id, name, email, image}
+    setUser(userId) {
+      if (this.currentUser.id.toString() !== userId.toString()) {
+        this.$router.push("/not-found");
+      }
+      const { id, name, email, image } = this.currentUser;
+      this.user = { id, name, email, image };
     },
     handleFileChange(e) {
-      const files = e.target.files
-      console.log(files)
-      if(files.length === 0) {
-        return this.user.image
+      const files = e.target.files;
+      console.log(files);
+      if (files.length === 0) {
+        return this.user.image;
       } else {
-        const imageURL = window.URL.createObjectURL(files[0])
-        return this.user.image = imageURL
+        const imageURL = window.URL.createObjectURL(files[0]);
+        console.log(imageURL);
+        return (this.user.image = imageURL);
       }
     },
-    handleSubmit(e) {
-      const form = e.target
-      const formData = new FormData(form)
-      this.$emit("submit-user-update", formData)
-    }
-  }
-}
+    async handleSubmit(e) {
+      try {
+        if (!this.user.name) {
+          Toast.fire({
+            icon: "warning",
+            title: "請填入使用者名稱",
+          });
+          return;
+        }
+
+        const form = e.target;
+        const formData = new FormData(form);
+        console.log(this.user.id);
+        this.isProcessing = true;
+        console.log(formData);
+        const { data } = await usersAPI.update({
+          userId: this.user.id,
+          formData,
+        });
+        if (data.status !== "success") {
+          throw new Error(data.message);
+        }
+        console.log(data);
+        this.isProcessing = false;
+        this.$router.push(`/users/${this.user.id}`);
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法存取餐廳資訊--",
+        });
+        this.isProcessing = false;
+        console.log(error);
+      }
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
