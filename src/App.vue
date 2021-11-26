@@ -2,25 +2,27 @@
   <div id="app">
     <Navbar />
     <main role="main" class="mt-5 bg-white"></main>
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
 <script>
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.min.css'
-import Navbar from './components/Navbar.vue'
-
-
+import "bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import Navbar from "./components/Navbar.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    Navbar
+    Navbar,
   },
-}
+};
 </script>
 
-<style lang="scss">
-
+<style lang="scss" scoped>
+main {
+  margin-top: 65px !important;
+}
 </style>
+
+

@@ -13,6 +13,9 @@
         :initial-restaurant="restaurant"
       />
     </div>
+    <div v-if="restaurants.length < 1">
+      <h1>此類別目前無餐廳資料</h1>
+    </div>
 
     <!-- 分頁標籤 RestaurantPagination -->
     <RestaurantPagination

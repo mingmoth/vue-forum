@@ -17,14 +17,21 @@
     <div id="navbarSupportedContent" class="navbar-collapse collapse">
       <div class="ml-auto d-flex align-items-center">
         <!-- is user is admin -->
-        <router-link v-if="currentUser.isAdmin" to="/admin" class="text-white mr-3">
+        <router-link
+          v-if="currentUser.isAdmin"
+          to="/admin"
+          class="text-white mr-3"
+        >
           管理員後台
         </router-link>
 
         <!-- is user is login -->
         <template v-if="isAuthenticated">
-          <router-link :to="{name: 'user', params: {id: currentUser.id}}" class="text-white mr-3">
-            {{currentUser.name || 使用者}} 您好
+          <router-link
+            :to="{ name: 'user', params: { id: currentUser.id } }"
+            class="text-white mr-3"
+          >
+            {{ currentUser.name || 使用者 }} 您好
           </router-link>
           <button
             type="button"
@@ -40,20 +47,20 @@
 </template>
 
 <script>
-import {mapState} from 'vuex'
+import { mapState } from "vuex";
 
 export default {
-  name: 'Navbar',
+  name: "Navbar",
   computed: {
-    ...mapState(["currentUser", "isAuthenticated"])
+    ...mapState(["currentUser", "isAuthenticated"]),
   },
   methods: {
     logout() {
-      this.$store.commit('revokeAuthentication')
-      this.$router.push('/signin')
-    }
-  }
-}
+      this.$store.commit("revokeAuthentication");
+      this.$router.push("/signin");
+    },
+  },
+};
 </script>
 
 
@@ -64,5 +71,19 @@ export default {
   .text-white {
     margin-right: 1em;
   }
+}
+.navbar-toggler {
+  min-width: 70px;
+  margin-right: 0;
+}
+
+nav.bg-dark {
+  padding: 14px 16px;
+  background-color: #bd2333 !important;
+}
+
+.navbar-brand {
+  font-size: 19px;
+  padding: 0;
 }
 </style>
